@@ -49,8 +49,12 @@ class QuickCheckSuite extends munit.FunSuite:
     // All the props should pass on the correct implementation
     val propertiesOnCorrectHeap =
       val heap = new HeapProperties(quickcheck.test.BinomialHeap()) with ArbitraryHeaps
+      // instance of Properties class for representing a collection of properties:
+      // https://javadoc.io/doc/org.scalacheck/scalacheck_3/latest/org/scalacheck/Properties.html
       new org.scalacheck.Properties("HeapProperties") {
         def register(labelledProp: (String, Prop)): Unit =
+          // use PropertySpecifier to specify as many properties as needed
+          // https://javadoc.io/static/org.scalacheck/scalacheck_3/1.17.0/org/scalacheck/Properties.html#property-0
           property(labelledProp(0)) = labelledProp(1)
         register(heap.minOfTwo)
         register(heap.deleteMinOfOne)
@@ -65,6 +69,8 @@ class QuickCheckSuite extends munit.FunSuite:
       val ps = java.io.PrintStream(baos)
       val testResult =
         Console.withOut(ps) {
+          // The main property test execution approach is to use the check or checkProperties method of Test
+          // https://github.com/typelevel/scalacheck/blob/main/doc/UserGuide.md#the-arbitrary-generator
           Test.checkProperties(
             testParameters.withTestCallback(
               org.scalacheck.util.ConsoleReporter(verbosity = 1, columnWidth = 120)
@@ -110,11 +116,15 @@ class QuickCheckSuite extends munit.FunSuite:
     }
   end checkPropertiesOnBogusHeap
 
-  def checkProp(p: Prop, startSeed: Seed, testParameters: Test.Parameters): Result =
+  def checkProp(p: Prop, startSeed: Seed, testParameters: Test.Parameters): Prop.Result =
     // Set up tests
     val iterations = testParameters.minSuccessfulTests
     val sizeStep = (testParameters.maxSize - testParameters.minSize) / iterations.toDouble
     // Generate all results
+    // The following procedure SEEMS to vary the Generator parameter for each evaluation run of the property
+    // Unclear about the impact/machemism of the parameters (of Gen and Test companion objects) yet
+    // https://javadoc.io/static/org.scalacheck/scalacheck_3/1.17.0/org/scalacheck/Gen$$Parameters.html
+    // https://javadoc.io/static/org.scalacheck/scalacheck_3/1.17.0/org/scalacheck/Test$$Parameters.html
     val counts = LazyList.range(0, iterations)
     val results = counts
       .scanLeft(startSeed)((oldSeed, _) => oldSeed.slide)
@@ -125,6 +135,8 @@ class QuickCheckSuite extends munit.FunSuite:
           .withInitialSeed(Some(seed))
           .withSize((testParameters.minSize.toDouble + (sizeStep * count)).round.toInt)
         
+        // Alternative way to evaluate a property by directly calling the apply method of the property with Gen parameters
+        // https://javadoc.io/static/org.scalacheck/scalacheck_3/1.17.0/org/scalacheck/Prop.html#apply-fffffa4a
         p(genPrms)
       }
 

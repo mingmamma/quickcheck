@@ -118,3 +118,10 @@ class Bogus5BinomialHeap extends BinomialHeap:
   override def meld(heap1: List[Node], heap2: List[Node]) = heap1 match
     case Nil => heap2
     case node1 :: heap1 => List(Node(node1.value, node1.rank, heap1 ++ heap2))
+
+// All that can be understood about `BinomialHeap` is nothing beyond reasoning the outcome of successive inserts
+// https://en.wikipedia.org/wiki/Binomial_heap
+// @main def run(): Unit = 
+  // val heapUtil = new BinomialHeap
+  // val heap1 = heapUtil.insert(4, heapUtil.insert(3, heapUtil.insert(2, heapUtil.insert(1, heapUtil.empty))))
+  // ()
